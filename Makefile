@@ -13,7 +13,7 @@ CXX = g++
 CXXFLAGS = -O -std=c++0x
 # makefile targets
 #newton_test.exe	:	newton.cpp	test_newton.cpp
-#linear_solve.exe	:	matrix.cpp	vandermonde.cpp
+#linear_solve.exe	:	matrix.cpp	vandermonde.cpp		
 #kepler.exe	:	matrix.cpp	newton.cpp	kepler.cpp
 
 all:

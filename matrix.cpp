@@ -1,5 +1,14 @@
+/*
+
+	LJ Brown
+	5 October 2016
+
+	This Matrix library is a work in progress.
+*/
+
+
+
 #include "matrix.h"
-//#include <vector>
 #include <cmath> /* pow */
 #include <algorithm> /* max */
 #include <random>
@@ -13,6 +22,10 @@ using namespace std;
 /*
 	Basic Vector Functions
 */
+
+//* Source for "Linspace": Daniel R. Reynolds, SMU Mathematics
+//https://bitbucket.org/drreynolds/matrix/src/13e75c4b2e260a6346416c1dd83fcb44b4cfb301/matrix.hpp?at=master&fileviewer=file-view-default
+//slight modifications
 
 //create a new vector of linearly space data
 vector<double> Linspace(double a, double b, int n){
@@ -45,12 +58,21 @@ vector<double> scale(vector<double> v, double s){
 
 //add vectors element wise
 std::vector<double> add(std::vector<double> a, std::vector<double> b){
-	if (a.size() != b.size()) cerr << "times::two vectors must be of same length\n";
+	if (a.size() != b.size()) cerr << "add::two vectors must be of same length\n";
 	vector<double> c;
 	for (int i=0; i<a.size(); i++)
 		c.push_back(a[i] + b[i]);
 	return c;
 }
+//add vectors element wise
+std::vector<double> sub(std::vector<double> a, std::vector<double> b){
+	if (a.size() != b.size()) cerr << "sub::two vectors must be of same length\n";
+	vector<double> c;
+	for (int i=0; i<a.size(); i++)
+		c.push_back(a[i] - b[i]);
+	return c;
+}
+
 
 //colapse vector to double, (sum entries)
 double sum_vector(vector<double> v){
@@ -59,6 +81,12 @@ double sum_vector(vector<double> v){
 		sum += v[i];
 	return sum;
 }
+
+//computes the p norm of a vector
+double norm(vector<double> v, int p){
+	return pow(abs(sum_vector(v)),p);
+}
+
 
 //raise each element to a power n in a vector
 vector<double> vector_pow(vector<double> v, double n){
@@ -393,27 +421,19 @@ int Matrix::LUP_factorization(Matrix &L, Matrix &U, Matrix &P){
 		
 		//PIVOT
 		// find the pivot row p (max of col) //starting from row k down
-		/*
+
 		int p=k;
 		for (int i=k; i<U.nrow; i++){
 		  if( abs(U.M[k][i]) >  abs(U.M[k][p]) )
 			p=i;
-		}*/
-
-		int p=k;
-		for (int i=k+1; i<U.nrow; i++){
-		  //if( abs(U.M[i][k]) >  abs(U.M[p][k]) )
-			if( abs(U.M[k][i]) >  abs(U.M[k][p]) )
-				p=i;
 		}
 
 		//swap L U and P rows around the pivot
 		//U
-		//L.swap_rows(p,k);		//for some matricies this makes it better and for others worse
-		//U.swap_rows(p,k);
+		U.swap_rows(p,k);
 
 		//P
-		//P.swap_rows(p,k);
+		P.swap_rows(p,k);
 		
 
 		//ELIMINATION
@@ -430,14 +450,6 @@ int Matrix::LUP_factorization(Matrix &L, Matrix &U, Matrix &P){
 
 	}
 
-	//1.  Construct the matrices  L, U and P.
-	cout << endl << "U, L, P:" << endl;
-	U.print();
-	cout << endl;
-	L.print();
-	cout << endl;
-	P.print();
-	cout << endl;
 
 	return 0;
 }
@@ -460,91 +472,6 @@ vector<double> Matrix::solve(vector<double> b){
 	    -note y = Ux
 	*/
 
-	/*
-	//create lower triangluar matrix base (create identity matrix)
-	Matrix L(this->nrow,this->ncol);
-	for(int i=0; i<L.nrow; i++)
-		L.M[i][i] = 1;
-
-	//create upper triangular Matrix to save A
-	Matrix U(this->nrow,this->ncol);
-	U.M = this->M;
-
-	//create P matrix to keep track of row swaps (create identity matrix)
-	Matrix P(this->nrow,this->ncol);
-	for(int i=0; i<P.nrow; i++)
-		P.M[i][i] = 1;
-	
-	// perform Gaussian elimination to convert A,b to an upper-triangular system
-	for (int k=0; k<U.nrow -1; k++) {   // loop over diagonals
-
-		//PIVOT
-		// find the pivot row p (max of col) //starting from row k down
-		int p=k;
-		for (int i=k; i<U.nrow; i++){
-		  if( abs(U.M[k][i]) >  abs(U.M[k][p]) )
-			p=i;
-		}
-
-		//swap U and b and P rows around the pivot
-		//U
-		U.swap_rows(p,k);
-
-		//b
-		swap(b,p,k);
-
-		//P
-		P.swap_rows(p,k);
-
-		//ELIMINATION
-		//Perform eliminations using row k
-		double c;	//scaler
-		for (int i=k; i<U.nrow-1; i++){
-			c = U.eliminate_0(k, i+1, k);
-			b[i+1] = b[i+1] * c;				//adjust b
-
-			//this->M[k][i+1] = c;				//store multipliers in col below pivot for L
-			//L.M[k][i+1] = c;					//store multipliers in Lower triangular Matrix
-			//NEG***???
-			if (c == 1){
-				L.M[k][i+1] =  0;
-			}else{
-				L.M[k][i+1] = -c;
-			}
-
-			cout << "c : " << c;
-
-		}
-
-	}
-
-	//1.  Construct the matrices  L, U and P.
-	cout << endl << "U, L, P:" << endl;
-	U.print();
-	cout << endl;
-	L.print();
-	cout << endl;
-	P.print();
-	cout << endl;
-
-	cout << "vector b (modified b) :" << endl;
-	print_vector(b);
-	cout << endl;
-
-
-
-
-	//check that L*U = A
-	cout << endl << "check that L*U = A :" << endl;
-	cout << endl << "L*U :" << endl;
-	Matrix Test;
-	Test = L.dot(U);
-	Test.print();
-
-	cout << endl << "A :" << endl;
-	this->print();
-	*/
-
 	//create lower triangluar matrix base (create identity matrix)
 	Matrix L;
 
@@ -556,113 +483,14 @@ vector<double> Matrix::solve(vector<double> b){
 
 	this->LUP_factorization(L,U,P);
 
-	cout << endl << "vector b: " << endl;
-	print_vector(b);
-
 	//2.  Compute the column vector  Pb.
 	vector<double> Pb = P.dot(b);
-
-	cout << endl << "Pb vector:" << endl;
-	print_vector(Pb);
-	cout << endl;
 
 	//3.  Solve  Ly = Pb for  y  using forward substitution.	(incorrect)
 	vector<double> y = L.forward_substitution(Pb);
 
-	cout << endl << "y vector:" << endl;
-	print_vector(y);
-	cout << endl;
-
 	//4.  Solve  Ux = y for x  using back substitution.
-	vector<double> computed_x = U.back_substitution(y);
-
-	cout << endl << "computed vector x:" << endl;
-	print_vector(computed_x);
-	cout << endl;
-
-
-	/*
-	//Test see if modified forward substitution gives the same answer as back sub
-	computed_x = U.forward_substitution(y);
-
-	cout << endl << "computed vector x (using forward_substitution):" << endl;
-	print_vector(computed_x);
-	*/
-
-
-
-
-
-
-	/*
-	//back substitution
-	// perform Backward Substitution on result
-	this->print();
-	U.print();
-	L.print();
-	P.print();
-
-	cout << " vector b (modified b) :" << endl;
-	print_vector(b);
-
-	cout << endl << " computed vector x :" << endl;
-	vector<double> computed_x =  U.back_substitution(b);
-	print_vector(computed_x);
-
-	cout << endl << " vector b (recomputed from computed x) :" << endl;
-	print_vector(U.dot(computed_x));
-	*/
-	/*
-	// perform Gaussian elimination to convert A,b to an upper-triangular system
-	for (int k=0; k<this->nrow -1; k++) {   // loop over diagonals
-
-		//PIVOT
-		// find the pivot row p (max of col) //starting from row k down
-		int p=k;
-		for (int i=k; i<this->nrow; i++){
-		  if( abs(this->M[k][i]) >  abs(this->M[k][p]) )
-			p=i;
-		}
-
-		//swap A and b rows around the pivot
-		//A
-		this->swap_rows(p,k);
-
-		//b
-		for (int j=0; j<b.size(); j++){
-			double tmp = b[p];
-			b[p] = b[k];
-			b[k] = tmp;
-		}
-
-		//ELIMINATION
-		//Perform eliminations using row k
-		double c;	//scaler
-		for (int i=k; i<this->nrow-1; i++){
-			c = this->eliminate_0(k, i+1, k);
-			b[i+1] = b[i+1] * c;				//adjust b
-			//this->M[k][i+1] = c;				//store multipliers in col below pivot for L
-			L.M[k][i+1] = c;					//store multipliers in Lower triangular Matrix
-		}
-
-	}
-
-	//back substitution
-	// perform Backward Substitution on result
-	this->print();
-	L.print();
-
-	cout << " vector b (modified b) :" << endl;
-	print_vector(b);
-
-	cout << endl << " computed vector x :" << endl;
-	vector<double> computed_x =  this->back_substitution(b);
-	print_vector(computed_x);
-
-	cout << endl << " vector b (recomputed from computed x) :" << endl;
-	print_vector(this->dot(computed_x));
-	*/
-
+	x = U.back_substitution(y);
 
 	return x;
 }
@@ -675,7 +503,6 @@ std::vector<double> Matrix::back_substitution(std::vector<double> b){
 		cerr << "Matrix::back_substitution error, illegal matrix/vector dimensions\n";
 		return vector<double>(0);
 	}
-
 
   // copy b into x
   vector<double> x = b;
@@ -692,25 +519,14 @@ std::vector<double> Matrix::back_substitution(std::vector<double> b){
       return vector<double>(0);
     }
 
-    x[j] /= this->M[j][j];
-
-    for (int i=this->ncol; i>=j; i--){
-    	int iter =(this->ncol)-(j+1);
-      	x[iter] -= this->M[j][i]*x[j];
-    }
-
-    /*
     // solve for this row of solution
     x[j] /= this->M[j][j];
 
     // update all remaining rhs
-    //for (int i=0; i<j; i++)
-    //x[j] -= this->M[i][j]*x[j];
-    for (int i=this->ncol; i>j; i--){
+    for (int i=this->ncol; i>=j; i--){
     	int iter =(this->ncol)-(j+1);
-      x[iter] -= this->M[j][i]*x[j];
+      	x[iter] -= this->M[j][i]*x[j];
     }
-    */
   }
 
   return x;

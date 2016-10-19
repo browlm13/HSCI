@@ -4,7 +4,7 @@
 #include <math.h>       /* sin, pow, sqrt */
 
 #include "newton.h"		/* newton */
-#include "matrix.h"		/* Linspace */
+#include "matrix.h"		/* Linspace, write */
 
 using namespace std;
 

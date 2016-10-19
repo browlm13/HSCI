@@ -24,15 +24,15 @@
 #define MATRIX_H
 
 #include <vector>
-//#include <string>
-
 
 //basic vector functions
 std::vector<double> Linspace(double a, double b, int n);
 std::vector<double> times(std::vector<double> a, std::vector<double> b);
 std::vector<double> scale(std::vector<double> v, double s);
 std::vector<double> add(std::vector<double> a, std::vector<double> b);
+std::vector<double> sub(std::vector<double> a, std::vector<double> b);
 double sum_vector(std::vector<double> v);
+double norm(std::vector<double> v, int p);
 std::vector<double> vector_pow(std::vector<double> v, double n);
 std::vector<double> random(int n);
 int max_index(std::vector<double> v);
